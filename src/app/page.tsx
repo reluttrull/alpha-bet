@@ -1,69 +1,56 @@
-import Image from "next/image";
+'use client'
+
+import LettersInPlay from "@/components/letters-in-play";
 import styles from "./page.module.css";
+import { useEffect, useState } from "react";
+import Deck from "@/components/deck";
 
 export default function Home() {
+  const [textInput, setTextInput] = useState<string>('');
+  const [words, setWords] = useState<string[]>([]);
+  const [error, setError] = useState<string|null>(null);
+  const [result, setResult] = useState<boolean>(false);
+
+  const handleInputChange = (event:any) => {
+    setTextInput(event.target.value);
+  }
+
+  const handleButtonClick = () => {
+    if (words.includes(textInput)) setResult(true)
+    else setResult(false);
+    if (textInput.length < 2) setResult(false);
+  }
+
+  useEffect(() => {
+    async function fetchFile() {
+      try {
+        const response = await fetch('/data/enable1.txt');
+        if (!response.ok) {
+          throw new Error(`Failed to load file: ${response.statusText}`);
+        }
+        const text = await response.text();
+        const lineArray = text.split(/\r?\n/);
+        setWords(lineArray);
+      } catch (err:any) {
+        setError(err.message);
+      }
+    }
+
+    fetchFile();
+  }, []);
+
   return (
     <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className={styles.intro}>
-          <h1>
-            To get started, edit the{" "}
-            <code className={styles.code}>page.tsx</code> file.
-          </h1>
-          <p>
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+      <label>
+        Input a word
+        <input value={textInput} onChange={handleInputChange} />
+      </label>
+      <button onClick={handleButtonClick}>Check</button>
+      {result ? <>That's a word!</> : <>Not a word...</>}
+      <div className={styles.horizontal}>
+        <LettersInPlay />
+        <Deck />
+      </div>
     </div>
   );
 }
