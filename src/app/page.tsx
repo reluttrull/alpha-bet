@@ -21,14 +21,27 @@ export default function Home() {
   const [deck, setDeck] = useState<Tile[]>([]);
   const [tiles, setTiles] = useState<Tile[]>([]);
   const [wordTiles, setWordTiles] = useState<Tile[]>([]);
+  const [score, setScore] = useState<number|null>(null);
 
   const handleButtonClick = () => {
     const builtWord = wordTiles.map(tile => tile.letter).join('');
     console.log('checking word', builtWord);
 
-    setResult(
-      builtWord.length >= 2 && words.includes(builtWord)
-    );
+    const success = builtWord.length >= 2 && words.includes(builtWord);
+
+    setResult(success);
+
+    if (success) {
+      let calculatedScore = 0;
+      wordTiles.forEach((tile:Tile) => {
+        calculatedScore += tile.points;
+      });
+      tiles.forEach((tile:Tile) => {
+        calculatedScore -= tile.points;
+      });
+
+      setScore(calculatedScore);
+    }
   };
 
   const handleDraw = () => {
@@ -145,6 +158,7 @@ export default function Home() {
             onDraw={handleDraw}
           />
         </div>
+        {score && <div>Score: {score}</div>}
       </div>
     </DragDropProvider>
   );
