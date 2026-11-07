@@ -15,7 +15,7 @@ export default function LetterTile({ url, index }: LetterTileProps) {
   });
 
   return (
-    <div ref={ref}>
+    <div ref={ref} key={`tile-${index}`}>
         <img src={url} />
     </div>
   );

@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import distribution from "@/models/distribution.json"
 import Deck from "@/components/deck";
 import { Tile } from "@/models/tile";
+import { seededShuffle } from "@/functions/shuffle";
 
 export default function Home() {
   const [textInput, setTextInput] = useState<string>('');
@@ -13,6 +14,7 @@ export default function Home() {
   const [error, setError] = useState<string|null>(null);
   const [result, setResult] = useState<boolean>(false);
 
+  const [seed, setSeed] = useState<number|null>(12345);
   const [deck, setDeck] = useState<Tile[]>([]);
   const [tiles, setTiles] = useState<Tile[]>([]);
 
@@ -21,7 +23,7 @@ export default function Home() {
   }
 
   const handleButtonClick = () => {
-    if (words.includes(textInput)) setResult(true)
+    if (words.includes(textInput.toLowerCase())) setResult(true)
     else setResult(false);
     if (textInput.length < 2) setResult(false);
   }
@@ -58,7 +60,7 @@ export default function Home() {
           index++;
         }
       })
-      setDeck(tilesToAdd);
+      setDeck(seededShuffle(tilesToAdd, seed));
     }
 
     fetchWordData();
