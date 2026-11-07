@@ -1,6 +1,6 @@
 'use client'
 
-import LettersInPlay from "@/components/letters-in-play";
+import TilesInPlay from "@/components/tiles-in-play";
 import styles from "./page.module.css";
 import { useEffect, useState } from "react";
 import Deck from "@/components/deck";
@@ -48,7 +48,7 @@ export default function Home() {
       <button onClick={handleButtonClick}>Check</button>
       {result ? <>That's a word!</> : <>Not a word...</>}
       <div className={styles.horizontal}>
-        <LettersInPlay />
+        <TilesInPlay />
         <Deck />
       </div>
     </div>
