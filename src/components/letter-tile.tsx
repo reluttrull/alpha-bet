@@ -3,12 +3,12 @@
 import { useId } from 'react';
 import {useSortable} from '@dnd-kit/react/sortable';
 
-interface TileProps {
+interface LetterTileProps {
     url: string;
     index: number;
 }
 
-export default function Tile({ url, index }: TileProps) {
+export default function LetterTile({ url, index }: LetterTileProps) {
   const {ref} = useSortable({
     id: useId(),
     index

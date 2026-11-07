@@ -1,10 +1,16 @@
 'use client'
 
-export default function Deck() {
+interface DeckProps {
+  numberRemaining: number;
+  onDraw: () => void;
+}
+
+export default function Deck({ numberRemaining, onDraw }:DeckProps) {
 
   return (
     <div>
-        Deck
+        <div>{numberRemaining} left in deck</div>
+        <button onClick={onDraw}>Draw</button>
     </div>
   );
 }
