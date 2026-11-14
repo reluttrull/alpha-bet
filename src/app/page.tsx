@@ -127,7 +127,7 @@ export default function Home() {
   useEffect(() => {
     async function fetchWordData() {
       try {
-        const response = await fetch('/data/enable1.txt');
+        const response = await fetch('/alpha-bet/data/enable1.txt');
 
         if (!response.ok) {
           throw new Error(`Failed to load words file: ${response.statusText}`);
