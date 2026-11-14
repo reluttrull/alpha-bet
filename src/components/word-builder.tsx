@@ -1,23 +1,22 @@
 'use client'
 
 import { Tile } from "@/models/tile";
+import type { DragEvent } from 'react';
 import LetterTile from "./letter-tile";
-import { useDroppable } from "@dnd-kit/react";
 
 interface WordBuilderProps {
   tiles: Tile[];
+  onDrop: (event: DragEvent<HTMLDivElement>, group: string, index: number) => void;
 }
 
-export default function WordBuilder({ tiles }: WordBuilderProps) {
-  const { ref } = useDroppable({
-    id: 'word-builder-dropzone',
-    data: { group: 'word-builder' },
-    disabled: tiles.length > 0,
-  });
-
+export default function WordBuilder({ tiles, onDrop }: WordBuilderProps) {
   return (
-    <div ref={ref} id="word-builder"
-      style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 0, minHeight: '200px', minWidth: '200px', border: '2px solid red' }}>
+    <div
+      id="word-builder"
+      onDragOver={event => event.preventDefault()}
+      onDrop={event => onDrop(event, 'word-builder', tiles.length)}
+      style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 0, minHeight: '200px', minWidth: '200px', border: '2px solid red' }}
+    >
       {tiles.map((tile, i) => (
         <LetterTile
           key={tile.index}
@@ -25,6 +24,7 @@ export default function WordBuilder({ tiles }: WordBuilderProps) {
           url={tile.url}
           index={i}
           group="word-builder"
+          onDrop={onDrop}
         />
       ))}
     </div>

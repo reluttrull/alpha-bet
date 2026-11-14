@@ -9,38 +9,34 @@ import { Tile } from "@/models/tile";
 import { seededShuffle } from "@/functions/shuffle";
 import WordBuilder from "@/components/word-builder";
 
-import { DragDropProvider, type DragEndEvent, type DragOverEvent } from "@dnd-kit/react";
-import { isSortable } from "@dnd-kit/react/sortable";
+import type { DragEvent } from "react";
 
 export default function Home() {
   const [words, setWords] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<boolean>(false);
+  const [result, setResult] = useState<boolean|null>(null);
 
-  const [seed, setSeed] = useState<number | null>(12345);
+  const [seed, setSeed] = useState<number | null>(null);
+  //const [seed, setSeed] = useState<number | null>(12345);
   const [deck, setDeck] = useState<Tile[]>([]);
   const [tiles, setTiles] = useState<Tile[]>([]);
   const [wordTiles, setWordTiles] = useState<Tile[]>([]);
+  const [turns, setTurns] = useState<number>(5);
   const [score, setScore] = useState<number|null>(null);
 
   const handleButtonClick = () => {
     const builtWord = wordTiles.map(tile => tile.letter).join('');
     console.log('checking word', builtWord);
 
-    const success = builtWord.length >= 2 && words.includes(builtWord);
+    const success = isWord(builtWord);
 
     setResult(success);
 
     if (success) {
-      let calculatedScore = 0;
-      wordTiles.forEach((tile:Tile) => {
-        calculatedScore += tile.points;
-      });
-      tiles.forEach((tile:Tile) => {
-        calculatedScore -= tile.points;
-      });
-
-      setScore(calculatedScore);
+      setScore(prev => (prev ?? 0) + currentScore());
+      setWordTiles([]);
+      setTurns(prev => prev - 1);
+      setResult(null);
     }
   };
 
@@ -54,62 +50,79 @@ export default function Home() {
     setDeck(prev => prev.slice(1));
   };
 
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { source } = event.operation;
+  const handleTileDrop = (event: DragEvent<HTMLDivElement>, targetGroup: string, targetIndex: number) => {
+    event.preventDefault();
 
-    if (event.canceled || !source || !isSortable(source) || source.initialGroup !== 'word-builder' || source.group !== 'word-builder') return;
+    const tileId = Number(event.dataTransfer.getData('text/plain'));
+    const sourceGroup = event.dataTransfer.getData('application/x-alpha-bet-group');
 
-    const fromIndex = source.initialIndex;
-    const toIndex = source.index;
+    if (!Number.isInteger(tileId)) return;
+    if (!['tiles-in-play', 'word-builder'].includes(sourceGroup) || !['tiles-in-play', 'word-builder'].includes(targetGroup)) return;
 
-    if (fromIndex === toIndex) return;
+    const sourceList = sourceGroup === 'tiles-in-play' ? tiles : wordTiles;
+    const movingTileIndex = sourceList.findIndex(tile => tile.index === tileId);
 
-    setWordTiles(prev => {
-      if (fromIndex < 0 || fromIndex >= prev.length || toIndex < 0 || toIndex >= prev.length) {
-        return prev;
+    if (movingTileIndex < 0) return;
+
+    if (sourceGroup === targetGroup) {
+      const updateTiles = (prev: Tile[]) => {
+        const reordered = [...prev];
+        const [movingTile] = reordered.splice(movingTileIndex, 1);
+        const insertionIndex = movingTileIndex < targetIndex ? targetIndex - 1 : targetIndex;
+        reordered.splice(Math.max(0, Math.min(insertionIndex, reordered.length)), 0, movingTile);
+        return reordered;
+      };
+
+      if (sourceGroup === 'tiles-in-play') {
+        setTiles(updateTiles);
+      } else {
+        setWordTiles(updateTiles);
       }
+      return;
+    }
 
-      const reordered = [...prev];
-      const [movedTile] = reordered.splice(fromIndex, 1);
-      reordered.splice(toIndex, 0, movedTile);
-      return reordered;
-    });
-  };
+    const movingTile = sourceList[movingTileIndex];
+    const insertTile = (prev: Tile[]) => {
+      const next = [...prev];
+      next.splice(Math.max(0, Math.min(targetIndex, next.length)), 0, movingTile);
+      return next;
+    };
 
-  const handleDragOver = (event: DragOverEvent) => {
-    const { source, target } = event.operation;
-
-    if (!source || !target || !isSortable(source)) return;
-
-    const tileId = source.id;
-    const sourceContainer = source.group;
-    const targetContainer = isSortable(target)
-      ? target.group
-      : target.data.group;
-
-    if (typeof sourceContainer !== 'string' || typeof targetContainer !== 'string') return;
-    if (sourceContainer === targetContainer) return;
-
-    const sourceIsTiles = sourceContainer === 'tiles-in-play';
-    const targetIsTiles = targetContainer === 'tiles-in-play';
-    const sourceIsWord = sourceContainer === 'word-builder';
-    const targetIsWord = targetContainer === 'word-builder';
-
-    if (!(sourceIsTiles && targetIsWord) && !(sourceIsWord && targetIsTiles)) return;
-
-    const sourceList = sourceIsTiles ? tiles : wordTiles;
-    const movingTile = sourceList.find(tile => tile.index === tileId);
-
-    if (!movingTile) return;
-
-    if (sourceIsTiles) {
+    if (sourceGroup === 'tiles-in-play') {
       setTiles(prev => prev.filter(tile => tile.index !== tileId));
-      setWordTiles(prev => [...prev, movingTile]);
+      setWordTiles(insertTile);
     } else {
       setWordTiles(prev => prev.filter(tile => tile.index !== tileId));
-      setTiles(prev => [...prev, movingTile]);
+      setTiles(insertTile);
     }
   };
+
+  const isWord = (wordToCheck:string) => {
+    return wordToCheck.length >= 2 && words.includes(wordToCheck);
+  }
+
+  const currentScore = () => {
+      let calculatedScore = 0;
+      wordTiles.forEach((tile:Tile) => {
+        calculatedScore += tile.points;
+      });
+      tiles.forEach((tile:Tile) => {
+        calculatedScore -= tile.points;
+      });
+
+      return calculatedScore;
+  }
+
+  useEffect(() => {
+    if (wordTiles.length === 0) return;
+
+    const builtWord = wordTiles.map(tile => tile.letter).join('');
+    console.log('checking word', builtWord);
+
+    const success = isWord(builtWord);
+
+    setResult(success);
+  }, [wordTiles])
 
   useEffect(() => {
     async function fetchWordData() {
@@ -143,23 +156,30 @@ export default function Home() {
   }, []);
 
   return (
-    <DragDropProvider onDragOver={handleDragOver} onDragEnd={handleDragEnd}>
+    <>
+      {turns > 0 &&
       <div className={styles.page}>
-        <WordBuilder tiles={wordTiles} />
+        <h2 className={styles.section}>Turns remaining: {turns}</h2>
+        <div className={styles.section}><WordBuilder tiles={wordTiles} onDrop={handleTileDrop} /></div>
 
-        <button onClick={handleButtonClick}>Check</button>
+        <button className={`${styles.btn} ${styles.section}`} onClick={handleButtonClick}>Check</button>
 
-        {result ? <>That's a word!</> : <>Not a word...</>}
+        {result != null &&
+          <>{result ? <>That's a word!</> : <>Not a word...</>}</>}
 
-        <div className={styles.horizontal}>
-          <TilesInPlay tiles={tiles} />
+        <div className={`${styles.horizontal} ${styles.section}`}>
+          <TilesInPlay tiles={tiles} onDrop={handleTileDrop} />
           <Deck
             numberRemaining={deck.length}
             onDraw={handleDraw}
           />
         </div>
         {score && <div>Score: {score}</div>}
-      </div>
-    </DragDropProvider>
+      </div>}
+      {turns < 1 && 
+      <div className={styles.page}>
+        <h2>Final score: {score}</h2>
+      </div>}
+    </>
   );
 }

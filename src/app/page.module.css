@@ -17,9 +17,25 @@
   padding: 120px 60px;
 }
 
+.section {
+  padding: 15px;
+}
+
 .horizontal {
   display: flex;
   flex-direction: row;
   width: 100%;
   justify-content: space-evenly;
+}
+
+.btn {
+  background-color: #007bff; 
+  color: #ffffff;            
+  padding: 12px 24px;        
+  font-size: 16px;           
+  font-weight: 600;
+  border: none;              
+  border-radius: 6px;        
+  cursor: pointer;           
+  transition: background-color 0.2s ease, transform 0.1s ease;
 }
