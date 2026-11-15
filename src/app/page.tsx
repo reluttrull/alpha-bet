@@ -51,6 +51,16 @@ export default function Home() {
     setDeck(prev => prev.slice(1));
   };
 
+  const handleShuffleHand = () => {
+    setTiles(seededShuffle(tiles, seed));
+  }
+
+  const handleReturnToHand = () => {
+    const tilesToMove = wordTiles;
+    setTiles([...tiles, ...tilesToMove]);
+    setWordTiles([]);
+  }
+
   const moveTile = (tileId: number, sourceGroup: string, targetGroup: string, targetIndex: number) => {
     if (!Number.isInteger(tileId)) return;
     if (!['tiles-in-play', 'word-builder'].includes(sourceGroup) || !['tiles-in-play', 'word-builder'].includes(targetGroup)) return;
@@ -195,17 +205,21 @@ export default function Home() {
         <h2 className={styles.section}>Turns remaining: {turns}</h2>
         <div className={styles.section}><WordBuilder tiles={wordTiles} onDrop={handleTileDrop} /></div>
 
-        <button className={`${styles.btn} ${styles.section}`} onClick={handleButtonClick}>Check</button>
+        <button className={`${styles.btn} ${styles.actionBtn} ${styles.section}`} onClick={handleButtonClick}>Submit</button>
+        <button className={styles.btn} style={{marginTop: '5px'}} onClick={handleReturnToHand}>Return</button>
 
         {result != null &&
           <>{result ? <>That's a word!</> : <>Not a word...</>}</>}
 
         <div className={`${styles.horizontal} ${styles.section}`}>
           <TilesInPlay tiles={tiles} onDrop={handleTileDrop} />
-          <Deck
-            numberRemaining={deck.length}
-            onDraw={handleDraw}
-          />
+          <div>
+            <Deck
+              numberRemaining={deck.length}
+              onDraw={handleDraw}
+            />
+            <button className={styles.btn} style={{marginTop: '5px'}} onClick={handleShuffleHand}>Shuffle</button>
+          </div>
         </div>
         {score && <div>Score: {score}</div>}
       </div>}

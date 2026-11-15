@@ -2,6 +2,7 @@
 
 import { Tile } from "@/models/tile";
 import type { DragEvent } from 'react';
+import styles from "@/app/page.module.css";
 import LetterTile from "./letter-tile";
 
 interface WordBuilderProps {
@@ -17,7 +18,7 @@ export default function WordBuilder({ tiles, onDrop }: WordBuilderProps) {
       data-drop-index={tiles.length}
       onDragOver={event => event.preventDefault()}
       onDrop={event => onDrop(event, 'word-builder', tiles.length)}
-      style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 0, minHeight: '200px', minWidth: '200px', border: '2px solid red' }}
+      className={`${styles.wordBuilder} ${styles.tileArea}`}
     >
       {tiles.map((tile, i) => (
         <LetterTile

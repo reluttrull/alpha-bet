@@ -29,7 +29,7 @@
 }
 
 .btn {
-  background-color: #007bff; 
+  background-color: #707070; 
   color: #ffffff;            
   padding: 12px 24px;        
   font-size: 16px;           
@@ -38,6 +38,46 @@
   border-radius: 6px;        
   cursor: pointer;           
   transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.actionBtn {
+  background-color: #8404ec;
+}
+
+
+.tileArea {
+  display: grid;
+  gap: 0;
+}
+
+.wordBuilder {
+  border: 2px solid red;
+  min-height: 100;
+  min-width: 250px;
+  grid-template-columns: repeat(6, 1fr);
+}
+
+.tilesInPlay {
+  border: 2px solid blue;
+  min-height: 200px;
+  min-width: 200px;
+  grid-template-columns: repeat(4, 1fr);
+}
+
+@media (min-width: 600px) {
+  .wordBuilder {
+    border: 2px solid red;
+    min-height: 200px;
+    min-width: 200px;
+    grid-template-columns: repeat(6, 1fr);
+  }
+
+  .tilesInPlay {
+    border: 2px solid blue;
+    min-height: 200px;
+    min-width: 200px;
+    grid-template-columns: repeat(6, 1fr);
+  }
 }
 
 .tile {

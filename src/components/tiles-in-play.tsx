@@ -2,6 +2,7 @@
 
 import { Tile } from "@/models/tile";
 import type { DragEvent } from 'react';
+import styles from "@/app/page.module.css";
 import LetterTile from "./letter-tile";
 
 interface TilesInPlayProps {
@@ -17,8 +18,7 @@ export default function TilesInPlay({ tiles, onDrop }: TilesInPlayProps) {
       data-drop-index={tiles.length}
       onDragOver={event => event.preventDefault()}
       onDrop={event => onDrop(event, 'tiles-in-play', tiles.length)}
-      style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)',
-        gap: 0, minHeight: '200px', minWidth: '200px', border: '2px solid blue' }}
+      className={`${styles.tilesInPlay} ${styles.tileArea}`}
     >
       {tiles.map((tile, i) => (
         <LetterTile
