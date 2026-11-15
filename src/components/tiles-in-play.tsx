@@ -13,6 +13,8 @@ export default function TilesInPlay({ tiles, onDrop }: TilesInPlayProps) {
   return (
     <div
       id="tiles-in-play"
+      data-drop-group="tiles-in-play"
+      data-drop-index={tiles.length}
       onDragOver={event => event.preventDefault()}
       onDrop={event => onDrop(event, 'tiles-in-play', tiles.length)}
       style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)',

@@ -1,6 +1,7 @@
 'use client'
 
 import type { DragEvent } from 'react';
+import styles from "@/app/page.module.css";
 
 interface LetterTileProps {
   url: string;
@@ -24,7 +25,17 @@ export default function LetterTile({ url, index, id, group, onDrop }: LetterTile
   };
 
   return (
-    <div draggable onDragStart={handleDragStart} onDragOver={event => event.preventDefault()} onDrop={handleDrop}>
+    <div
+      data-tile-id={id}
+      data-drop-group={group}
+      data-drop-index={index}
+      draggable
+      onDragStart={handleDragStart}
+      onDragOver={event => event.preventDefault()}
+      onDrop={handleDrop}
+      className={styles.tile}
+      style={{ touchAction: 'none' }}
+    >
       <img src={url} draggable={false} />
     </div>
   );

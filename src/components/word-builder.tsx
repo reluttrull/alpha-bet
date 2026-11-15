@@ -13,6 +13,8 @@ export default function WordBuilder({ tiles, onDrop }: WordBuilderProps) {
   return (
     <div
       id="word-builder"
+      data-drop-group="word-builder"
+      data-drop-index={tiles.length}
       onDragOver={event => event.preventDefault()}
       onDrop={event => onDrop(event, 'word-builder', tiles.length)}
       style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 0, minHeight: '200px', minWidth: '200px', border: '2px solid red' }}

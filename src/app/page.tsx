@@ -2,16 +2,17 @@
 
 import TilesInPlay from "@/components/tiles-in-play";
 import styles from "./page.module.css";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import distribution from "@/models/distribution.json";
 import Deck from "@/components/deck";
 import { Tile } from "@/models/tile";
 import { seededShuffle } from "@/functions/shuffle";
 import WordBuilder from "@/components/word-builder";
 
-import type { DragEvent } from "react";
+import type { DragEvent, PointerEvent as ReactPointerEvent } from "react";
 
 export default function Home() {
+  const touchDrag = useRef<{ pointerId: number; tileId: number; sourceGroup: string } | null>(null);
   const [words, setWords] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<boolean|null>(null);
@@ -50,12 +51,7 @@ export default function Home() {
     setDeck(prev => prev.slice(1));
   };
 
-  const handleTileDrop = (event: DragEvent<HTMLDivElement>, targetGroup: string, targetIndex: number) => {
-    event.preventDefault();
-
-    const tileId = Number(event.dataTransfer.getData('text/plain'));
-    const sourceGroup = event.dataTransfer.getData('application/x-alpha-bet-group');
-
+  const moveTile = (tileId: number, sourceGroup: string, targetGroup: string, targetIndex: number) => {
     if (!Number.isInteger(tileId)) return;
     if (!['tiles-in-play', 'word-builder'].includes(sourceGroup) || !['tiles-in-play', 'word-builder'].includes(targetGroup)) return;
 
@@ -94,6 +90,43 @@ export default function Home() {
     } else {
       setWordTiles(prev => prev.filter(tile => tile.index !== tileId));
       setTiles(insertTile);
+    }
+  };
+
+  const handleTileDrop = (event: DragEvent<HTMLDivElement>, targetGroup: string, targetIndex: number) => {
+    event.preventDefault();
+    const tileId = Number(event.dataTransfer.getData('text/plain'));
+    const sourceGroup = event.dataTransfer.getData('application/x-alpha-bet-group');
+    moveTile(tileId, sourceGroup, targetGroup, targetIndex);
+  };
+
+  const handleTouchStart = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (event.pointerType !== 'touch' || !(event.target instanceof Element)) return;
+    const tile = event.target.closest<HTMLElement>('[data-tile-id]');
+    if (!tile) return;
+
+    touchDrag.current = {
+      pointerId: event.pointerId,
+      tileId: Number(tile.dataset.tileId),
+      sourceGroup: tile.dataset.dropGroup ?? '',
+    };
+  };
+
+  const handleTouchEnd = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (event.pointerType !== 'touch' || !touchDrag.current || event.pointerId !== touchDrag.current.pointerId) return;
+    const movingTile = touchDrag.current;
+    touchDrag.current = null;
+
+    const target = document.elementFromPoint(event.clientX, event.clientY)?.closest<HTMLElement>('[data-drop-group]');
+    if (!target) return;
+
+    const targetIndex = Number(target.dataset.dropIndex);
+    moveTile(movingTile.tileId, movingTile.sourceGroup, target.dataset.dropGroup ?? '', targetIndex);
+  };
+
+  const handleTouchCancel = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (event.pointerType === 'touch' && event.pointerId === touchDrag.current?.pointerId) {
+      touchDrag.current = null;
     }
   };
 
@@ -158,7 +191,7 @@ export default function Home() {
   return (
     <>
       {turns > 0 &&
-      <div className={styles.page}>
+      <div className={styles.page} onPointerDown={handleTouchStart} onPointerUp={handleTouchEnd} onPointerCancel={handleTouchCancel}>
         <h2 className={styles.section}>Turns remaining: {turns}</h2>
         <div className={styles.section}><WordBuilder tiles={wordTiles} onDrop={handleTileDrop} /></div>
 
